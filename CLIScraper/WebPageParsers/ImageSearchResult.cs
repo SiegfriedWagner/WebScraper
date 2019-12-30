@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace CLIScraper.WebPageParsers
 {
-    public struct ImageSearchResult
+    public class ImageSearchResult
     {
-        public string ImageUrl { get; private set; }
-        public string Name { get; private set; }
+        public string ImageWebUrl { get; protected set; }
+        public string Name { get; protected set; }
         public string FileExtension 
         { 
             get 
             {
-                return ImageUrl.Split('.').LastOrDefault().ToLower();
+                return ImageWebUrl.Split('.').LastOrDefault().ToLower();
             } 
         }
         public ImageSearchResult(string ImageUrl, string Name)
         {
             this.Name = Name;
-            this.ImageUrl = ImageUrl;
+            this.ImageWebUrl = ImageUrl;
         }
     }
 }

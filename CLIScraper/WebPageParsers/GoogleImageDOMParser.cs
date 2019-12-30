@@ -16,7 +16,7 @@ namespace CLIScraper.WebPageParsers
     public class GoogleImageDOMParser
     {
         PageLoader PageLoader { get; set; }
-        public GoogleImageDOMParser(PageLoader pageLoader) { PageLoader = pageLoader; }
+        //public GoogleImageDOMParser(PageLoader pageLoader) { PageLoader = pageLoader; }
         public readonly static string[] ValidImageExtensions = new string[] { "jpg", "jpeg", "png", "bmp", "gif" };
         public static IEnumerable<ImageSearchResult> GetUrls(string html_document)
         {
