@@ -8,16 +8,19 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Specialized;
 using WebScraperWPF.Model;
+using System.Windows.Input;
+using WebScraperWPF.Commands;
+
 namespace WebScraperWPF.ViewModel
 {
     public class ToDownloadListViewModel : INotifyPropertyChanged
     {
         Model.Model model;
         public event PropertyChangedEventHandler PropertyChanged;
-        
+
         public ToDownloadListViewModel()
         {
-            model = new Model.Model(@"D:\git\WebScraper\CLIScraper\cache");
+            model = new Model.Model(Environment.CurrentDirectory + "/cache");
             model.CollectionChanged += OnCollectionChanged;
         }
 
@@ -27,19 +30,16 @@ namespace WebScraperWPF.ViewModel
             OnPropertyChanged(new PropertyChangedEventArgs(nameof(SearchResults)));
         }
 
-        private string searchPhrase = "Default";
-        public string SearchPhrase { 
-            get { return searchPhrase; } 
-            set 
-            {   
-                searchPhrase = value;
-                var task = new Task(() => model.SearchPhrase(value));
-                task.Start();
-                task.Wait();
-                OnPropertyChanged(new PropertyChangedEventArgs(nameof(SearchPhrase)));
-            }  
+        public string PhraseToSearch {get; set;}
+        public ICommand SearchPhrase
+        {
+            get
+            {
+                return new GenericActionCommand(new Action(() => {
+                    model.SearchPhrase(PhraseToSearch);
+                }));
+            }
         }
-        
         public ObservableCollection<CachedImageSearchResult> SearchResults
         {
             get
@@ -59,4 +59,5 @@ namespace WebScraperWPF.ViewModel
                 PropertyChanged.Invoke(this, args);
         }
     }
+
 }
