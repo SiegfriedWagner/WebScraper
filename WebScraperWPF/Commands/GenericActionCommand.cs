@@ -29,4 +29,27 @@ namespace WebScraperWPF.Commands
             Action();
         }
     }
+
+    public class GenericActionCommand<T> : ICommand
+    {
+        public event EventHandler CanExecuteChanged;
+        public Action<T> Action
+        {
+            private set;
+            get;
+        }
+        public GenericActionCommand(Action<T> actionToExecute)
+        {
+            Action = actionToExecute ?? throw new Exception("Action cannot be null");
+        }
+        public bool CanExecute(object parameter)
+        {
+            return true;
+        }
+
+        public void Execute(object parameter)
+        {
+            Action((T) parameter);
+        }
+    }
 }

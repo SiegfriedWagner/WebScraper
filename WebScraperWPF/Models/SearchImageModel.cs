@@ -14,18 +14,18 @@ using System.Windows.Data;
 
 namespace WebScraperWPF.Model
 {
-    public class Model: INotifyCollectionChanged
+    public class SearchImageModel: INotifyCollectionChanged
     {
         private string CacheDirector;
         PageLoader pageLoader;
         private object searchResultsLock = new object();
-        public Model(string cacheDirectory)
+        public SearchImageModel(string cacheDirectory)
         {
             pageLoader = PageLoader.GetPageLoader();
             if (!Directory.Exists(cacheDirectory))
                 Directory.CreateDirectory(cacheDirectory);
             CacheDirector = cacheDirectory;
-            CollectionChanged += Model.DebugNotify;
+            CollectionChanged += DebugNotify;
             SearchResults = new ObservableCollection<CachedImageSearchResult>();
             BindingOperations.EnableCollectionSynchronization(SearchResults, searchResultsLock);
             
@@ -35,7 +35,7 @@ namespace WebScraperWPF.Model
         {
             Debug.WriteLine("CollectionChanged call");
         }   
-        ~Model()
+        ~SearchImageModel()
         {
             Directory.Delete(CacheDirector, true);
         }
@@ -59,26 +59,6 @@ namespace WebScraperWPF.Model
             if (imageSearchResults == null)
                 throw new InvalidDataException($"After {5} attempts no search results was found!");
 
-            //foreach (var imageResult in imageSearchResults)
-            //{
-            //    Stopwatch watch = new Stopwatch();
-            //    watch.Start();
-            //    Debug.WriteLine($"Started downloading {imageResult.Name} from [{imageResult.ImageWebUrl}]", "INFO");
-            //    WebClient webClient = new WebClient();
-            //    try
-            //    {
-            //        var filePath = Path.Combine(CacheDirector, $"{imageResult.Name}.{imageResult.FileExtension}");
-            //        webClient.DownloadFile(imageResult.ImageWebUrl, filePath);
-            //        SearchResults.Add(new CachedImageSearchResult(imageResult, filePath));
-            //        Debug.WriteLine($"Finished downloading {imageResult.Name} in {watch.ElapsedMilliseconds}ms", "INFO");
-            //    }
-            //    catch
-            //    {
-            //        Debug.WriteLine("Exception occured", "ERROR");
-            //    }
-            //    webClient.Dispose();
-            //    watch.Stop();
-            //}
             //imageSearchResults.ForEach((imageResult) =>
             await Task.Factory.StartNew(() =>
             {

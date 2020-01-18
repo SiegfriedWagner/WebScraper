@@ -10,18 +10,21 @@ using System.Collections.Specialized;
 using WebScraperWPF.Model;
 using System.Windows.Input;
 using WebScraperWPF.Commands;
+using WebScraperWPF.Models;
 
 namespace WebScraperWPF.ViewModel
 {
     public class ToDownloadListViewModel : INotifyPropertyChanged
     {
-        Model.Model model;
+        SearchImageModel searchModel;
+        ImageProcessModel imageProcessModel;
         public event PropertyChangedEventHandler PropertyChanged;
 
         public ToDownloadListViewModel()
         {
-            model = new Model.Model(Environment.CurrentDirectory + "/cache");
-            model.CollectionChanged += OnCollectionChanged;
+            searchModel = new SearchImageModel(Environment.CurrentDirectory + "/cache");
+            searchModel.CollectionChanged += OnCollectionChanged;
+            imageProcessModel = new ImageProcessModel(); 
         }
 
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -36,7 +39,19 @@ namespace WebScraperWPF.ViewModel
             get
             {
                 return new GenericActionCommand(new Action(() => {
-                    model.SearchPhrase(PhraseToSearch);
+                    searchModel.SearchPhrase(PhraseToSearch);
+                }));
+            }
+        }
+
+        public ICommand SelectImage
+        {
+            get
+            {
+                return new GenericActionCommand<CachedImageSearchResult>(new Action<CachedImageSearchResult>((param) =>
+                {
+                    if (!imageProcessModel.ImagesToProcess.Contains(param))
+                        imageProcessModel.ImagesToProcess.Add(param);
                 }));
             }
         }
@@ -44,11 +59,11 @@ namespace WebScraperWPF.ViewModel
         {
             get
             {
-                return model.SearchResults;
+                return searchModel.SearchResults;
             }
             private set
             {
-                model.SearchResults = value;
+                searchModel.SearchResults = value;
                 OnPropertyChanged(new PropertyChangedEventArgs(nameof(SearchResults)));
             }
         }

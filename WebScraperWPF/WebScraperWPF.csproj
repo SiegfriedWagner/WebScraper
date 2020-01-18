@@ -101,7 +101,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Commands\GenericActionCommand.cs" />
-    <Compile Include="Models\Model.cs" />
+    <Compile Include="Models\ImageProcessModel.cs" />
+    <Compile Include="Models\SearchImageModel.cs" />
     <Compile Include="ViewModel\ToDownloadListViewModel.cs" />
     <Compile Include="View\SearchResultView.cs" />
     <Page Include="MainWindow.xaml">
