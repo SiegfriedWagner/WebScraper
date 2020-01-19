@@ -24,7 +24,7 @@ namespace WebScraperWPF.ViewModel
         {
             searchModel = new SearchImageModel(Environment.CurrentDirectory + "/cache");
             searchModel.CollectionChanged += OnCollectionChanged;
-            imageProcessModel = new ImageProcessModel(); 
+            imageProcessModel = new ImageProcessModel(Environment.CurrentDirectory + "/processcache"); 
         }
 
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -48,14 +48,14 @@ namespace WebScraperWPF.ViewModel
         {
             get
             {
-                return new GenericActionCommand<CachedImageSearchResult>(new Action<CachedImageSearchResult>((param) =>
+                return new GenericActionCommand<ImageSearchResult>(new Action<ImageSearchResult>((param) =>
                 {
                     if (!imageProcessModel.ImagesToProcess.Contains(param))
                         imageProcessModel.ImagesToProcess.Add(param);
                 }));
             }
         }
-        public ObservableCollection<CachedImageSearchResult> SearchResults
+        public ObservableCollection<ImageSearchResult> SearchResults
         {
             get
             {

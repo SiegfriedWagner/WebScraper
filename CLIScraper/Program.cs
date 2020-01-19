@@ -33,27 +33,29 @@ namespace CLIScraper
                 if (!Directory.Exists(o.ResultDirectory))
                     Directory.CreateDirectory(o.ResultDirectory);
                 PageLoader pageLoader = PageLoader.GetPageLoader();
-                List<ImageSearchResult> imageSearchResults = null;
+                List<Func<string, Task<ImageSearchResult>>> imageSearchResultFuncs = null;
                 for (int i = 0; i < o.Attempts; i++)
                 {
                     var task = pageLoader.LoadPageAsync($@"https://www.google.com/search?q={o.SearchPhrase}&source=lnms&tbm=isch");
                     task.Wait();
                     var imageUrlGenerator = GoogleImageDOMParser.GetUrls(task.Result);
-                    imageSearchResults = imageUrlGenerator.Take(o.NumberOfImages).ToList();
-                    if (imageSearchResults.Count > 0)
+                    imageSearchResultFuncs = imageUrlGenerator.Take(o.NumberOfImages).ToList();
+                    if (imageSearchResultFuncs.Count > 0)
                         break;
                 }
-                if (imageSearchResults == null)
+                if (imageSearchResultFuncs == null)
                     throw new InvalidDataException($"After {o.Attempts} attempts no search results was found!");
-                var a = Parallel.ForEach(imageSearchResults, (imageResult) =>
+                var imageSearchResultTasks = imageSearchResultFuncs
+                    .AsParallel()
+                    .Select(m => m(o.ResultDirectory))
+                    .ToList();
+                var a = Parallel.ForEach(imageSearchResultTasks, (imageResultTask) =>
                 {
                     Stopwatch watch = new Stopwatch();
                     watch.Start();
-                    Console.WriteLine($"Started downloading {imageResult.Name} from [{imageResult.ImageWebUrl}]");
-                    WebClient webClient = new WebClient();
-                    webClient.DownloadFile(imageResult.ImageWebUrl, Path.Combine(o.ResultDirectory, $"{imageResult.Name}.{imageResult.FileExtension}"));
+                    imageResultTask.Wait();
                     watch.Stop();
-                    Console.WriteLine($"Finished downloading {imageResult.Name} in {watch.ElapsedMilliseconds}ms");
+                    Console.WriteLine($"Finished downloading {imageResultTask.Result.Name} in {watch.ElapsedMilliseconds}ms");
                 });
                 Console.WriteLine("All images were downloaded succesfully");
                 Console.ReadKey();

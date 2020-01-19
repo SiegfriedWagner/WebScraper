@@ -16,11 +16,11 @@ namespace WebScraperWPF.Models
         public ImageProcessModel(string cacheDirector)
         {
 
-            ImagesToProcess = new ObservableCollection<CachedImageSearchResult>();
+            ImagesToProcess = new ObservableCollection<ImageSearchResult>();
             CollectionChanged += DebugNotify;
         }
         public event NotifyCollectionChangedEventHandler CollectionChanged;
-        public ObservableCollection<CachedImageSearchResult> ImagesToProcess
+        public ObservableCollection<ImageSearchResult> ImagesToProcess
         {
             set; get;
         }

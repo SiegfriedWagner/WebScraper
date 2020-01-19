@@ -16,7 +16,7 @@ namespace WebScraperWPF.Model
 {
     public class SearchImageModel: INotifyCollectionChanged
     {
-        private string CacheDirector;
+        private string CacheDirectory;
         PageLoader pageLoader;
         private object searchResultsLock = new object();
         public SearchImageModel(string cacheDirectory)
@@ -24,9 +24,9 @@ namespace WebScraperWPF.Model
             pageLoader = PageLoader.GetPageLoader();
             if (!Directory.Exists(cacheDirectory))
                 Directory.CreateDirectory(cacheDirectory);
-            CacheDirector = cacheDirectory;
+            CacheDirectory = cacheDirectory;
             CollectionChanged += DebugNotify;
-            SearchResults = new ObservableCollection<CachedImageSearchResult>();
+            SearchResults = new ObservableCollection<ImageSearchResult>();
             BindingOperations.EnableCollectionSynchronization(SearchResults, searchResultsLock);
             
         }
@@ -37,48 +37,52 @@ namespace WebScraperWPF.Model
         }   
         ~SearchImageModel()
         {
-            Directory.Delete(CacheDirector, true);
+            Directory.Delete(CacheDirectory, true);
         }
         public event NotifyCollectionChangedEventHandler CollectionChanged;
-        public ObservableCollection<CachedImageSearchResult> SearchResults
+        public ObservableCollection<ImageSearchResult> SearchResults
         {
             set; get;
         }
     public async void SearchPhrase(string phrase)
-        {
+    {
             PageLoader pageLoader = PageLoader.GetPageLoader();
-            List<ImageSearchResult> imageSearchResults = null;
+            List<Func<string, Task<ImageSearchResult>>> imageSearchResultsFunc = null;
             for (int i = 0; i < 5; i++)
             {
                 var page = await pageLoader.LoadPageAsync($@"https://www.google.com/search?q={phrase}&source=lnms&tbm=isch");
                 var imageUrlGenerator = GoogleImageDOMParser.GetUrls(page);
-                imageSearchResults = imageUrlGenerator.ToList();
-                if (imageSearchResults.Count > 0)
+                imageSearchResultsFunc = imageUrlGenerator.ToList();
+                if (imageSearchResultsFunc.Count > 0)
                     break;
             }
-            if (imageSearchResults == null)
+            if (imageSearchResultsFunc == null)
                 throw new InvalidDataException($"After {5} attempts no search results was found!");
-
-            //imageSearchResults.ForEach((imageResult) =>
-            await Task.Factory.StartNew(() =>
+            var imageSearchResultTasks = imageSearchResultsFunc
+                .AsParallel()
+                .Select(o => o(CacheDirectory))
+                .ToList();
+            imageSearchResultTasks.ForEach((imageResultTask) =>
+            //await Task.Factory.StartNew(() =>
             {
-                Parallel.ForEach(imageSearchResults, (imageResult) =>
-                {
+            //    Parallel.ForEach(imageSearchResultTasks, (imageResultTask) =>
+            //    {
                     Stopwatch watch = new Stopwatch();
                     watch.Start();
-                    Debug.WriteLine($"Started downloading {imageResult.Name} from [{imageResult.ImageWebUrl}]");
-                    WebClient webClient = new WebClient();
+                    //Debug.WriteLine($"Started downloading {imageResultTask.Name} from [{imageResultTask.ImageWebUrl}]");
                     try
                     {
-                        var filePath = Path.Combine(CacheDirector, $"{imageResult.Name}.{imageResult.FileExtension}");
-                        webClient.DownloadFile(imageResult.ImageWebUrl, filePath);
+                        imageResultTask.RunSynchronously();
+                        imageResultTask.Wait();
+                        //var filePath = Path.Combine(CacheDirector, $"{imageResultTask.Name}.{imageResultTask.FileExtension}");
+                        //webClient.DownloadFile(imageResultTask.ImageWebUrl, filePath);
                         lock (searchResultsLock)
                         {
-                            var added = new CachedImageSearchResult(imageResult, filePath);
+                            var added = imageResultTask.Result;
                             SearchResults.Add(added);
                             //CollectionChanged.BeginInvoke(SearchResults, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, added), (o) => { }, SearchResults);
                         }
-                        Debug.WriteLine($"Finished downloading {imageResult.Name} in {watch.ElapsedMilliseconds}ms", "INFO");
+                        Debug.WriteLine($"Finished downloading {imageResultTask.Result.Name} in {watch.ElapsedMilliseconds}ms", "INFO");
                     }
                     catch
                     {
@@ -87,7 +91,7 @@ namespace WebScraperWPF.Model
                     watch.Stop();
 
                 });
-            });
+            //});
             Debug.WriteLine("All images were downloaded succesfully", "INFO");
         }
     }
