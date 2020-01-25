@@ -64,18 +64,20 @@ namespace WebScraperWPF.Model
                 .ToList();
             imageSearchResultTasks.ForEach((imageResultTask) =>
             //await Task.Factory.StartNew(() =>
-            {
+            //{
             //    Parallel.ForEach(imageSearchResultTasks, (imageResultTask) =>
-            //    {
+                {
                     Stopwatch watch = new Stopwatch();
                     watch.Start();
                     //Debug.WriteLine($"Started downloading {imageResultTask.Name} from [{imageResultTask.ImageWebUrl}]");
                     try
                     {
                         imageResultTask.RunSynchronously();
-                        imageResultTask.Wait();
+                        //imageResultTask.Start();
+                        imageResultTask.Wait(10000);
                         //var filePath = Path.Combine(CacheDirector, $"{imageResultTask.Name}.{imageResultTask.FileExtension}");
                         //webClient.DownloadFile(imageResultTask.ImageWebUrl, filePath);
+                        if (imageResultTask.IsCompleted && imageResultTask.Result != null)
                         lock (searchResultsLock)
                         {
                             var added = imageResultTask.Result;

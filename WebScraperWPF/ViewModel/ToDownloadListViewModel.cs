@@ -19,7 +19,6 @@ namespace WebScraperWPF.ViewModel
         SearchImageModel searchModel;
         ImageProcessModel imageProcessModel;
         public event PropertyChangedEventHandler PropertyChanged;
-
         public ToDownloadListViewModel()
         {
             searchModel = new SearchImageModel(Environment.CurrentDirectory + "/cache");
@@ -50,8 +49,40 @@ namespace WebScraperWPF.ViewModel
             {
                 return new GenericActionCommand<ImageSearchResult>(new Action<ImageSearchResult>((param) =>
                 {
-                    if (!imageProcessModel.ImagesToProcess.Contains(param))
-                        imageProcessModel.ImagesToProcess.Add(param);
+                    imageProcessModel.Add(param);
+                }));
+            }
+        }
+        public ImageSearchResult ProcessedImage
+        {
+            get
+            {
+                return imageProcessModel.Current;
+            }
+        }
+        public ICommand RotateRight
+        {
+            get
+            {
+                return new GenericActionCommand(new Action(() =>
+                {
+                    var curr = imageProcessModel.Current;
+                    var next = imageProcessModel.Next();
+                    if (curr != next)
+                        OnPropertyChanged(new PropertyChangedEventArgs(nameof(ProcessedImage)));
+                }));
+            }
+        }
+        public ICommand RotateLeft
+        {
+            get
+            {
+                return new GenericActionCommand(new Action(() =>
+                {
+                    var curr = imageProcessModel.Current;
+                    var next = imageProcessModel.Previous();
+                    if (curr != next)
+                        OnPropertyChanged(new PropertyChangedEventArgs(nameof(ProcessedImage)));
                 }));
             }
         }

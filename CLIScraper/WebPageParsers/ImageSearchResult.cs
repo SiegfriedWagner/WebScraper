@@ -45,12 +45,14 @@ namespace CLIScraper.WebPageParsers
                 extension = "." + match.Value.Replace(";base64,", "").Replace("data:image/", "");
                 SourceData = SourceData.Substring(match.Length, SourceData.Length - match.Length);
             }
+            else
+                return null;
             byte[] imageBytes = Convert.FromBase64String(SourceData);
             string outputPath = Path.Combine(OutputDirectory, Name + extension);
             FileStream fileStream = new FileStream(outputPath, FileMode.OpenOrCreate);
             fileStream.Write(imageBytes, 0, imageBytes.Length);
  
-            return new ImageSearchResult(Name: Name, ImagePathUri: outputPath, FileExtension: "");
+            return new ImageSearchResult(Name: Name, ImagePathUri: outputPath, FileExtension: extension);
         }
         public static ImageSearchResult FromBase64(string OutputDirectory, string source)
         {

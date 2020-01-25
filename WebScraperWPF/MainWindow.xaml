@@ -48,7 +48,11 @@
             </Grid>
         </TabItem>
         <TabItem Header="Process Images">
-            
+            <DockPanel LastChildFill="True">
+                <Button Width="50" Height="50" DockPanel.Dock="Left" Command="{Binding RotateLeft}">Left</Button>
+                <Button Width="50" Height="50" DockPanel.Dock="Right" Command="{Binding RotateRight}">Right</Button>
+                <Image Width="auto" Height="auto" Source="{Binding ProcessedImage.ImagePathUri, Mode=OneWay}"/>
+            </DockPanel>
         </TabItem>
         <TabItem Header="View Results">
             

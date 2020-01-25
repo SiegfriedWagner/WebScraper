@@ -10,23 +10,48 @@ using System.Threading.Tasks;
 
 namespace WebScraperWPF.Models
 {
-    class ImageProcessModel : INotifyCollectionChanged
+    class ImageProcessModel
     {
         string cacheDirectory;
+        int currentIndex = 0;
+        List<ImageSearchResult> ImagesToProcess = null;
         public ImageProcessModel(string cacheDirector)
         {
-
-            ImagesToProcess = new ObservableCollection<ImageSearchResult>();
-            CollectionChanged += DebugNotify;
-        }
-        public event NotifyCollectionChangedEventHandler CollectionChanged;
-        public ObservableCollection<ImageSearchResult> ImagesToProcess
-        {
-            set; get;
+            ImagesToProcess = new List<ImageSearchResult>();
+            
         }
         private static void DebugNotify(object secnder, NotifyCollectionChangedEventArgs e)
         {
             Debug.WriteLine("CollectionChanged call");
+        }
+        public ImageSearchResult Current
+        {
+            get
+            {
+                if (ImagesToProcess.Count == 0)
+                    return null;
+                return ImagesToProcess[currentIndex];
+            }
+        }
+        public ImageSearchResult Next()
+        {
+            if (ImagesToProcess.Count == 0)
+                return null;
+            currentIndex = Math.Min(ImagesToProcess.Count - 1, currentIndex + 1);
+            return ImagesToProcess[currentIndex];
+        }
+        public ImageSearchResult Previous()
+        {
+            if (ImagesToProcess.Count == 0)
+                return null;
+            currentIndex = Math.Max(0, currentIndex - 1);
+            return ImagesToProcess[currentIndex];
+        }
+
+        internal void Add(ImageSearchResult param)
+        {
+            if (!ImagesToProcess.Contains(param))
+                ImagesToProcess.Append(param);
         }
     }
 }
