@@ -13,7 +13,7 @@ namespace WebScraperWPF.Models
     class ImageProcessModel
     {
         string cacheDirectory;
-        int currentIndex = 0;
+        int currentIndex = -1;
         List<ImageSearchResult> ImagesToProcess = null;
         public ImageProcessModel(string cacheDirector)
         {
@@ -28,7 +28,7 @@ namespace WebScraperWPF.Models
         {
             get
             {
-                if (ImagesToProcess.Count == 0)
+                if (ImagesToProcess.Count == 0 || currentIndex == -1)
                     return null;
                 return ImagesToProcess[currentIndex];
             }
@@ -51,7 +51,7 @@ namespace WebScraperWPF.Models
         internal void Add(ImageSearchResult param)
         {
             if (!ImagesToProcess.Contains(param))
-                ImagesToProcess.Append(param);
+                ImagesToProcess.Add(param);
         }
     }
 }
