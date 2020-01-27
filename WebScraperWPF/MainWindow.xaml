@@ -3,7 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:VM="clr-namespace:WebScraperWPF.ViewModel"
+        xmlns:beh="clr-namespace:WebScraperWPF.Behaviors"
         mc:Ignorable="d"
         Title="WebScraper" Height="450" Width="800"
     WindowState="Maximized">
@@ -49,11 +51,36 @@
         </TabItem>
         <TabItem Header="Process Images">
             <DockPanel LastChildFill="True">
+                <WrapPanel DockPanel.Dock="Top">
+                    <Label Content="Width: "/>
+                    <Label Content="{Binding ProcessedImage.Width, Mode=OneWay}"/>
+                    <Label Content="Height"/>
+                    <Label Content="{Binding ProcessedImage.Height, Mode=OneWay}"/>
+                </WrapPanel>
                 <Button Width="50" Height="50" DockPanel.Dock="Left" Command="{Binding RotateLeft}">Left</Button>
                 <Button Width="50" Height="50" DockPanel.Dock="Right" Command="{Binding RotateRight}">Right</Button>
-                <Image Width="auto" Height="auto" Source="{Binding ProcessedImage.ImagePathUri, Mode=OneWay}"/>
-            </DockPanel>
-        </TabItem>
+                <Grid Width="auto" Height="auto">
+                    <Image x:Name="ImageControl" Width="auto" Height="auto" Source="{Binding ProcessedImage, Mode=OneWay}"  Grid.Row="0" Grid.Column="0"/>
+                    <Canvas x:Name="Canv" 
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Width="{Binding ElementName=ImageControl, Path=ActualWidth, Mode=OneWay}" 
+                            Height="{Binding ElementName=ImageControl, Path=ActualHeight, Mode=OneWay}"
+                            >
+                        <i:Interaction.Behaviors>
+                            <beh:SelectBehavior Selection="{Binding Selection}"/>
+                        </i:Interaction.Behaviors>
+
+                        <Rectangle
+                            Canvas.Left="0"
+                            Canvas.Top="0"
+                            Width="{Binding ElementName=ImageControl, Path=ActualWidth, Mode=OneWay}" 
+                            Height="{Binding ElementName=ImageControl, Path=ActualHeight, Mode=OneWay}"
+                                   Fill="Aqua" Opacity="0.01"/> <!--that's pretty strange - rect is required for selection to work-->
+                    </Canvas>
+                </Grid>
+           </DockPanel>
+        </TabItem>  
         <TabItem Header="View Results">
             
         </TabItem>

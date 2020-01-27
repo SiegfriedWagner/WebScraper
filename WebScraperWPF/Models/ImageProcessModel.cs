@@ -7,51 +7,57 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
+using Emgu.CV;
 
 namespace WebScraperWPF.Models
 {
     class ImageProcessModel
     {
+        
         string cacheDirectory;
+        public Action OnProcessedImageChange;
         int currentIndex = -1;
-        List<ImageSearchResult> ImagesToProcess = null;
+        List<KeyValuePair<ImageSearchResult, Mat>> ImagesToProcess = null;
         public ImageProcessModel(string cacheDirector)
         {
-            ImagesToProcess = new List<ImageSearchResult>();
+            ImagesToProcess = new List<KeyValuePair<ImageSearchResult, Mat>>();
             
         }
-        private static void DebugNotify(object secnder, NotifyCollectionChangedEventArgs e)
-        {
-            Debug.WriteLine("CollectionChanged call");
-        }
-        public ImageSearchResult Current
+        public KeyValuePair<ImageSearchResult, Mat> Current
         {
             get
             {
                 if (ImagesToProcess.Count == 0 || currentIndex == -1)
-                    return null;
+                    return new KeyValuePair<ImageSearchResult, Mat>(null, null);
                 return ImagesToProcess[currentIndex];
             }
         }
-        public ImageSearchResult Next()
+        public void Next()
         {
             if (ImagesToProcess.Count == 0)
-                return null;
+                return;
+            var prevIndex = currentIndex;
             currentIndex = Math.Min(ImagesToProcess.Count - 1, currentIndex + 1);
-            return ImagesToProcess[currentIndex];
+            if (prevIndex != currentIndex)
+                OnProcessedImageChange.Invoke();
         }
-        public ImageSearchResult Previous()
+        public void Previous()
         {
             if (ImagesToProcess.Count == 0)
-                return null;
+                return;
+            var prevIndex = currentIndex;
             currentIndex = Math.Max(0, currentIndex - 1);
-            return ImagesToProcess[currentIndex];
+            if (prevIndex != currentIndex)
+                OnProcessedImageChange.Invoke();
         }
 
         internal void Add(ImageSearchResult param)
         {
-            if (!ImagesToProcess.Contains(param))
-                ImagesToProcess.Add(param);
+            if (!ImagesToProcess.Where(k => k.Key == param).Any())
+            {   
+                ImagesToProcess.Add(new KeyValuePair<ImageSearchResult, Mat>(param, null));
+            }  
         }
     }
 }

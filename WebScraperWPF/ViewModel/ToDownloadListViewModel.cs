@@ -11,6 +11,11 @@ using WebScraperWPF.Model;
 using System.Windows.Input;
 using WebScraperWPF.Commands;
 using WebScraperWPF.Models;
+using System.Windows.Media.Imaging;
+using Emgu.CV;
+using System.Windows;
+using System.Runtime.InteropServices;
+using System.Windows.Shapes;
 
 namespace WebScraperWPF.ViewModel
 {
@@ -23,7 +28,8 @@ namespace WebScraperWPF.ViewModel
         {
             searchModel = new SearchImageModel(Environment.CurrentDirectory + "/cache");
             searchModel.CollectionChanged += OnCollectionChanged;
-            imageProcessModel = new ImageProcessModel(Environment.CurrentDirectory + "/processcache"); 
+            imageProcessModel = new ImageProcessModel(Environment.CurrentDirectory + "/processcache");
+            imageProcessModel.OnProcessedImageChange += () => { OnPropertyChanged(new PropertyChangedEventArgs(nameof(ProcessedImage))); };
         }
 
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -53,11 +59,18 @@ namespace WebScraperWPF.ViewModel
                 }));
             }
         }
-        public ImageSearchResult ProcessedImage
+        public BitmapSource ProcessedImage
         {
             get
             {
-                return imageProcessModel.Current;
+                if (imageProcessModel.Current.Key != null)
+                {
+                    if (imageProcessModel.Current.Value == null)
+                        return new BitmapImage(new Uri(imageProcessModel.Current.Key.ImagePathUri));
+                    else
+                        return imageProcessModel.Current.Value.ToBitmapSource();
+                }
+                return null;
             }
         }
         public ICommand RotateRight
@@ -66,10 +79,8 @@ namespace WebScraperWPF.ViewModel
             {
                 return new GenericActionCommand(new Action(() =>
                 {
-                    var curr = imageProcessModel.Current;
-                    var next = imageProcessModel.Next();
-                    if (curr != next)
-                        OnPropertyChanged(new PropertyChangedEventArgs(nameof(ProcessedImage)));
+
+                    imageProcessModel.Next();
                 }));
             }
         }
@@ -79,10 +90,7 @@ namespace WebScraperWPF.ViewModel
             {
                 return new GenericActionCommand(new Action(() =>
                 {
-                    var curr = imageProcessModel.Current;
-                    var next = imageProcessModel.Previous();
-                    if (curr != next)
-                        OnPropertyChanged(new PropertyChangedEventArgs(nameof(ProcessedImage)));
+                    imageProcessModel.Previous();
                 }));
             }
         }
@@ -98,11 +106,16 @@ namespace WebScraperWPF.ViewModel
                 OnPropertyChanged(new PropertyChangedEventArgs(nameof(SearchResults)));
             }
         }
-
+         
         protected void OnPropertyChanged(PropertyChangedEventArgs args)
         {
             if (PropertyChanged != null)
                 PropertyChanged.Invoke(this, args);
+        }
+
+        public Rectangle Selection
+        {
+            get;
         }
     }
 

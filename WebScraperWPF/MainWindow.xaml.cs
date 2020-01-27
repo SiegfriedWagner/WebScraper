@@ -24,5 +24,10 @@ namespace WebScraperWPF
         {
             InitializeComponent();
         }
+
+        private void Canv_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+        }
     }
 }
