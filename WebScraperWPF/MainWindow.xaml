@@ -59,6 +59,9 @@
                 </WrapPanel>
                 <Button Width="50" Height="50" DockPanel.Dock="Left" Command="{Binding RotateLeft}">Left</Button>
                 <Button Width="50" Height="50" DockPanel.Dock="Right" Command="{Binding RotateRight}">Right</Button>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom">
+                    <Button Width="100" Command="{Binding Resize}">Resize</Button>
+                </StackPanel>
                 <Grid Width="auto" Height="auto">
                     <Image x:Name="ImageControl" Width="auto" Height="auto" Source="{Binding ProcessedImage, Mode=OneWay}"  Grid.Row="0" Grid.Column="0"/>
                     <Canvas x:Name="Canv" 
@@ -68,7 +71,7 @@
                             Height="{Binding ElementName=ImageControl, Path=ActualHeight, Mode=OneWay}"
                             >
                         <i:Interaction.Behaviors>
-                            <beh:SelectBehavior Selection="{Binding Selection}"/>
+                            <beh:SelectBehavior Selection="{Binding Selection, Mode=TwoWay}"/>
                         </i:Interaction.Behaviors>
 
                         <Rectangle

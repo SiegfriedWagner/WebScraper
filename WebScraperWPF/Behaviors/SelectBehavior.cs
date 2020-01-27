@@ -12,14 +12,42 @@ using System.Windows.Media;
 
 namespace WebScraperWPF.Behaviors
 {
+    public class Selection
+    {
+        public Selection(double top, double left, double width, double height)
+        {
+            Top = top;
+            Left = left;
+            Width = width;
+            Height = height;
+        }
+        public double Top { private set;  get; }
+        public double Left { private set;  get; }
+        public double Width { private set; get; }
+        public double Height { private set; get; }
+    }
     public class SelectBehavior : Behavior<Canvas>
     {
-        public static readonly DependencyProperty SelectionProperty = DependencyProperty.Register("Selection", typeof(Rectangle), typeof(SelectBehavior), new PropertyMetadata(null));
+        public static readonly DependencyProperty SelectionProperty = DependencyProperty.Register(
+            "Selection", 
+            typeof(Selection), 
+            typeof(SelectBehavior),
+            new FrameworkPropertyMetadata(null,
+            FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
         //https://stackoverflow.com/questions/24479754/wpf-binding-to-properties-from-class-with-custom-behavior
         Point? startPoint = null;
-        public Rectangle Selection
+        public Selection Selection
+        {
+            get { return (Selection)GetValue(SelectionProperty); }
+            set { SetValue(SelectionProperty, value); }
+        }
+        private Rectangle CanvasRectanangle
         {
             get; set;
+        }
+        public SelectBehavior() : base()
+        {
+            Selection = new Selection(-1, -1, -1, -1);
         }
         protected override void OnAttached()
         {
@@ -32,7 +60,8 @@ namespace WebScraperWPF.Behaviors
 
         private void MouseUp(object sender, MouseButtonEventArgs e)
         {
-            startPoint = null;
+            var a = Selection;
+            startPoint = null;           
         }
 
         private void MouseMove(object sender, MouseEventArgs e)
@@ -41,35 +70,36 @@ namespace WebScraperWPF.Behaviors
                 return;
             Canvas obj = AssociatedObject as Canvas;
             Point mousePosition = e.GetPosition(obj);
-            Selection.Width = Math.Max(mousePosition.X - startPoint.Value.X, 0);
-            Selection.Height = Math.Max(mousePosition.Y -  startPoint.Value.Y, 0);
+            CanvasRectanangle.Width = Math.Max(mousePosition.X - startPoint.Value.X, 0);
+            CanvasRectanangle.Height = Math.Max(mousePosition.Y -  startPoint.Value.Y, 0);
+            Selection = new Selection(left: startPoint.Value.X, top: startPoint.Value.Y, width: CanvasRectanangle.Width, height: CanvasRectanangle.Height);
         }
 
         private void MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (Selection != null && startPoint == null)
+            if (CanvasRectanangle != null && startPoint == null)
                 RemoveSelection();
             Canvas obj = AssociatedObject as Canvas;
             startPoint = e.GetPosition(obj);
-            Selection = new Rectangle();
-            Selection.Width = 5;
-            Selection.Height = 5;
-            Selection.StrokeThickness = 2;
-            Selection.Stroke = new SolidColorBrush(Colors.DarkBlue);
-            Selection.Fill = new SolidColorBrush(Colors.Blue);
-            Selection.Opacity = 0.2;
-            Canvas.SetLeft(Selection, startPoint.Value.X);
-            Canvas.SetTop(Selection, startPoint.Value.Y);
-            obj.Children.Add(Selection);
+            CanvasRectanangle = new Rectangle();
+            CanvasRectanangle.Width = 5;
+            CanvasRectanangle.Height = 5;
+            CanvasRectanangle.StrokeThickness = 2;
+            CanvasRectanangle.Stroke = new SolidColorBrush(Colors.DarkBlue);
+            CanvasRectanangle.Fill = new SolidColorBrush(Colors.Blue);
+            CanvasRectanangle.Opacity = 0.2;
+            Canvas.SetLeft(CanvasRectanangle, startPoint.Value.X);
+            Canvas.SetTop(CanvasRectanangle, startPoint.Value.Y);
+            obj.Children.Add(CanvasRectanangle);
         }
 
         private void RemoveSelection()
         {
-            if (Selection == null)
+            if (CanvasRectanangle == null)
                 return;
             Canvas obj = AssociatedObject as Canvas;
-            obj.Children.Remove(Selection);
-            Selection = null;
+            obj.Children.Remove(CanvasRectanangle);
+            CanvasRectanangle = null;
             startPoint = null;
         }
 }

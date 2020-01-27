@@ -16,6 +16,7 @@ using Emgu.CV;
 using System.Windows;
 using System.Runtime.InteropServices;
 using System.Windows.Shapes;
+using WebScraperWPF.Behaviors;
 
 namespace WebScraperWPF.ViewModel
 {
@@ -113,9 +114,21 @@ namespace WebScraperWPF.ViewModel
                 PropertyChanged.Invoke(this, args);
         }
 
-        public Rectangle Selection
+        public Selection Selection
         {
-            get;
+            set;  get;
+        }
+
+        public ICommand Resize
+        {
+            get
+            {
+                return new GenericActionCommand(new Action(() =>
+                {
+                    if (Selection != null)
+                        Console.WriteLine($"Left: {Selection.Left} Top: {Selection.Top} Width: {Selection.Width} Height: {Selection.Height}");
+                }));
+            }
         }
     }
 
