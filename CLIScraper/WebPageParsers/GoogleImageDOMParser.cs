@@ -10,35 +10,63 @@ using System.Web;
 using System.Web.Helpers;
 using System.IO;
 using System.Diagnostics;
+using AngleSharp.Html.Dom;
+using System.Text.RegularExpressions;
 
 namespace CLIScraper.WebPageParsers
 {
     public class GoogleImageDOMParser
     {
         PageLoader PageLoader { get; set; }
-        public GoogleImageDOMParser(PageLoader pageLoader) { PageLoader = pageLoader; }
+        //public GoogleImageDOMParser(PageLoader pageLoader) { PageLoader = pageLoader; }
         public readonly static string[] ValidImageExtensions = new string[] { "jpg", "jpeg", "png", "bmp", "gif" };
-        public static IEnumerable<ImageSearchResult> GetUrls(string html_document)
+        public static IEnumerable<Func<string, Task<ImageSearchResult>>> GetUrls(string html_document)
         {
             var browsingContext = BrowsingContext.New(Configuration.Default);
             var task = browsingContext.OpenAsync(req => req.Content(html_document));
             task.Wait();
             var document = task.Result;
-            var test = document.QuerySelectorAll("div.rg_meta");
+            //var test = document.QuerySelectorAll("div.rg_meta");
+            var test = document.QuerySelectorAll("img.rg_i");
             foreach (var element in test)
             {
-                //dynamic json = JsonConvert.DeserializeObject(element.InnerHtml);
-                dynamic json = Json.Decode(element.InnerHtml);
-                string name = json.pt.ToString();
-                foreach(var invalidchar in Path.GetInvalidFileNameChars())
+                IHtmlImageElement htmlimage = element as IHtmlImageElement;
+                if (htmlimage != null && htmlimage.Source.StartsWith("https"))
                 {
-                    name = name.Replace($"{invalidchar}", "");
+                    Debug.WriteLine("Element is url");
                 }
-                var result = new ImageSearchResult(ImageUrl: json.ou.ToString(), Name: name);
-                if (ValidImageExtensions.Contains(result.FileExtension))
-                    yield return result;
+                else if (htmlimage != null && htmlimage.Source != "")
+                {
+                    yield return new Func<string, Task<ImageSearchResult>>((path) => 
+                    {
+                        return new Task<ImageSearchResult>(() => 
+                        {
+                            return ImageSearchResult.FromBase64(path, htmlimage.Source); 
+                        });
+                    });
+                }
+                else if (htmlimage != null)
+                {
+                    Regex re = new Regex("data-src=\".*?\"");
+                    var match = re.Match(htmlimage.OuterHtml);
+                    if (match.Success)
+                    {
+                        var url = match.Value.Substring("data-src=\"".Length, match.Value.Length - "data-src=\"".Length - 1);
+                        yield return new Func<string, Task<ImageSearchResult>>((path) =>
+                        {
+                            return new Task<ImageSearchResult>(() =>
+                            {
+                                return ImageSearchResult.FromWebUrl(path, url);
+                            });
+                        });
+                    }
+                    else
+                        throw new Exception("Unhandled data source");
+                }
                 else
-                    Debug.WriteLine($"Unknow file extension of {result.FileExtension}", "INFO");
+                {
+                    Debug.WriteLine("Element is not a HTML image");
+                }
             }
         }
     }

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CefSharp;
+﻿using CefSharp;
 using CefSharp.OffScreen;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
 namespace CLIScraper
 {
     public class PageLoader
@@ -13,14 +11,15 @@ namespace CLIScraper
         private static CefSettings cefSettings = null;
         private ChromiumWebBrowser browser;
         private static bool IsInitialized = false;
+
         private PageLoader()
         {
-            browser = new ChromiumWebBrowser();     
+            browser = new ChromiumWebBrowser();
         }
         public static PageLoader GetPageLoader()
         {
-            if(!IsInitialized)
-            { 
+            if (!IsInitialized)
+            {
                 CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
                 cefSettings = new CefSettings()
                 {
@@ -31,13 +30,14 @@ namespace CLIScraper
             }
             return new PageLoader();
         }
-        public async Task<string> LoadPage(string url)
+        public async Task<string> LoadPageAsync(string url)
         {
             await browser.AwaitInitialization();
             browser.Load(url);
             await browser.AwaitPageLoad();
             return await browser.GetSourceAsync();
         }
+
     }
 }
 
