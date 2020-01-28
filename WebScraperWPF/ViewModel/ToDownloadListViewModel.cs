@@ -17,11 +17,14 @@ using System.Windows;
 using System.Runtime.InteropServices;
 using System.Windows.Shapes;
 using WebScraperWPF.Behaviors;
+using Emgu.CV.Structure;
+using System.IO;
 
 namespace WebScraperWPF.ViewModel
 {
     public class ToDownloadListViewModel : INotifyPropertyChanged
     {
+        string outputdDirectory;
         SearchImageModel searchModel;
         ImageProcessModel imageProcessModel;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -31,6 +34,7 @@ namespace WebScraperWPF.ViewModel
             searchModel.CollectionChanged += OnCollectionChanged;
             imageProcessModel = new ImageProcessModel(Environment.CurrentDirectory + "/processcache");
             imageProcessModel.OnProcessedImageChange += () => { OnPropertyChanged(new PropertyChangedEventArgs(nameof(ProcessedImage))); };
+            outputdDirectory = System.IO.Path.Combine(Environment.CurrentDirectory, "out");
         }
 
         private void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -126,7 +130,37 @@ namespace WebScraperWPF.ViewModel
                 return new GenericActionCommand(new Action(() =>
                 {
                     if (Selection != null)
+                        imageProcessModel.CropCurrent(Selection);
+                        // ProcessedImage = ProcessedImage.ToMat().ToImage<Bgr, byte>(tryShareData: false).AsBitmap();
                         Console.WriteLine($"Left: {Selection.Left} Top: {Selection.Top} Width: {Selection.Width} Height: {Selection.Height}");
+                }));
+            }
+        }
+        public ICommand Reset
+        {
+            get
+            {
+                return new GenericActionCommand(new Action(() =>
+                {
+                    imageProcessModel.ResetCurrent();
+                }));
+            }
+        }
+
+        public ICommand Save
+        {
+            get
+            {
+                return new GenericActionCommand(new Action(() =>
+                {
+                    string outPath = System.IO.Path.Combine(outputdDirectory, PhraseToSearch);
+                    if (!Directory.Exists(outPath))
+                        Directory.CreateDirectory(outPath);
+                    outPath = System.IO.Path.Combine(outPath, imageProcessModel.Current.Key.Name + "." + imageProcessModel.Current.Key.FileExtension);
+                    if (imageProcessModel.Current.Value == null)
+                        File.Copy(imageProcessModel.Current.Key.ImagePathUri, outPath);
+                    else
+                        imageProcessModel.Current.Value.Save(outPath);
                 }));
             }
         }

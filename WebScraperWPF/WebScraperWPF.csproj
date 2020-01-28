@@ -139,6 +139,7 @@
     <Compile Include="Behaviors\SelectBehavior.cs" />
     <Compile Include="Commands\GenericActionCommand.cs" />
     <Compile Include="Converters\MouseButtonEventArgsToPointConverter.cs" />
+    <Compile Include="Converters\MultiCommandConverter.cs" />
     <Compile Include="Extensions\BitmapExtension.cs" />
     <Compile Include="Extensions\BitmapSourceExtension.cs" />
     <Compile Include="Models\ImageProcessModel.cs" />

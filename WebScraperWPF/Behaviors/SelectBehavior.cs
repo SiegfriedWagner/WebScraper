@@ -9,6 +9,7 @@ using System.Windows.Interactivity;
 using System.Windows.Input;
 using System.Windows.Shapes;
 using System.Windows.Media;
+using WebScraperWPF.Commands;
 
 namespace WebScraperWPF.Behaviors
 {
@@ -34,20 +35,36 @@ namespace WebScraperWPF.Behaviors
             typeof(SelectBehavior),
             new FrameworkPropertyMetadata(null,
             FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        public static readonly DependencyProperty ResetSelectionCommand = DependencyProperty.Register(
+            "ResetSelection",
+            typeof(GenericActionCommand),
+            typeof(SelectBehavior),
+            null);
         //https://stackoverflow.com/questions/24479754/wpf-binding-to-properties-from-class-with-custom-behavior
         Point? startPoint = null;
+        /// <summary>
+        /// Selection area. Measures are in percentage of image where (0.0, 0.0) is top left core
+        /// </summary>
         public Selection Selection
         {
             get { return (Selection)GetValue(SelectionProperty); }
             set { SetValue(SelectionProperty, value); }
         }
-        private Rectangle CanvasRectanangle
+        public GenericActionCommand ResetSelection
         {
-            get; set;
+            get { return (GenericActionCommand)GetValue(ResetSelectionCommand); }
+            private set { SetValue(ResetSelectionCommand, value); }
         }
         public SelectBehavior() : base()
         {
-            Selection = new Selection(-1, -1, -1, -1);
+            ResetSelection =  new GenericActionCommand(new Action(() =>
+            {
+                RemoveSelection();
+            }));
+        }
+        private Rectangle CanvasRectanangle
+        {
+            get; set;
         }
         protected override void OnAttached()
         {
@@ -72,7 +89,11 @@ namespace WebScraperWPF.Behaviors
             Point mousePosition = e.GetPosition(obj);
             CanvasRectanangle.Width = Math.Max(mousePosition.X - startPoint.Value.X, 0);
             CanvasRectanangle.Height = Math.Max(mousePosition.Y -  startPoint.Value.Y, 0);
-            Selection = new Selection(left: startPoint.Value.X, top: startPoint.Value.Y, width: CanvasRectanangle.Width, height: CanvasRectanangle.Height);
+            Selection = new Selection(
+                left: startPoint.Value.X / obj.ActualWidth, 
+                top: startPoint.Value.Y / obj.ActualHeight, 
+                width: CanvasRectanangle.Width / obj.ActualWidth, 
+                height: CanvasRectanangle.Height / obj.ActualHeight);
         }
 
         private void MouseDown(object sender, MouseButtonEventArgs e)

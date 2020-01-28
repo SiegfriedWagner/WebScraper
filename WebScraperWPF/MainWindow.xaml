@@ -6,12 +6,19 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:VM="clr-namespace:WebScraperWPF.ViewModel"
         xmlns:beh="clr-namespace:WebScraperWPF.Behaviors"
+        xmlns:conv="clr-namespace:WebScraperWPF.Converters"
         mc:Ignorable="d"
         Title="WebScraper" Height="450" Width="800"
     WindowState="Maximized">
     <Window.DataContext>
         <VM:ToDownloadListViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+        <conv:MultiCommandConverter x:Key="ResizeMultiCommandConverter"/>
+        <conv:MultiCommandConverter x:Key="ResetMultiCommandConverter"/>
+        <conv:MultiCommandConverter x:Key="SaveMultiCommandConverter"/>
+        <beh:SelectBehavior x:Key="PictureSelector"/>
+    </Window.Resources>
     <TabControl>
         <TabItem Header="Find Images">
             <Grid>
@@ -60,7 +67,30 @@
                 <Button Width="50" Height="50" DockPanel.Dock="Left" Command="{Binding RotateLeft}">Left</Button>
                 <Button Width="50" Height="50" DockPanel.Dock="Right" Command="{Binding RotateRight}">Right</Button>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom">
-                    <Button Width="100" Command="{Binding Resize}">Resize</Button>
+                    <Button Height="50" Width="100" Content="Resize">
+                        <Button.Command>
+                            <MultiBinding Converter="{StaticResource ResizeMultiCommandConverter}">
+                                <Binding Path="Resize"/>
+                                <Binding ElementName="PictureSelector" Path="ResetSelection"/>
+                            </MultiBinding>
+                        </Button.Command>
+                    </Button>
+                    <Button Height="50" Width="100" Content="Reset">
+                        <Button.Command>
+                            <MultiBinding Converter="{StaticResource ResetMultiCommandConverter}">
+                                <Binding Path="Reset"/>
+                                <Binding ElementName="PictureSelector" Path="ResetSelection"/>
+                            </MultiBinding>
+                        </Button.Command>
+                    </Button>
+                    <Button Height="50" Width="100" Content="Save">
+                        <Button.Command>
+                            <MultiBinding Converter="{StaticResource SaveMultiCommandConverter}">
+                                <Binding Path="Save"/>
+                                <Binding ElementName="PictureSelector" Path="ResetSelection"/>
+                            </MultiBinding>
+                        </Button.Command>
+                    </Button>
                 </StackPanel>
                 <Grid Width="auto" Height="auto">
                     <Image x:Name="ImageControl" Width="auto" Height="auto" Source="{Binding ProcessedImage, Mode=OneWay}"  Grid.Row="0" Grid.Column="0"/>
@@ -71,7 +101,7 @@
                             Height="{Binding ElementName=ImageControl, Path=ActualHeight, Mode=OneWay}"
                             >
                         <i:Interaction.Behaviors>
-                            <beh:SelectBehavior Selection="{Binding Selection, Mode=TwoWay}"/>
+                            <beh:SelectBehavior x:Name="PictureSelector" Selection="{Binding Selection, Mode=TwoWay}"/>
                         </i:Interaction.Behaviors>
 
                         <Rectangle
