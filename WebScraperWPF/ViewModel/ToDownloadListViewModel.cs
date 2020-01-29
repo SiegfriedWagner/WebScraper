@@ -49,6 +49,8 @@ namespace WebScraperWPF.ViewModel
             get
             {
                 return new GenericActionCommand(new Action(() => {
+                    searchModel.SearchResults.Clear();
+                    imageProcessModel.Clear();
                     searchModel.SearchPhrase(PhraseToSearch);
                 }));
             }
@@ -156,11 +158,13 @@ namespace WebScraperWPF.ViewModel
                     string outPath = System.IO.Path.Combine(outputdDirectory, PhraseToSearch);
                     if (!Directory.Exists(outPath))
                         Directory.CreateDirectory(outPath);
-                    outPath = System.IO.Path.Combine(outPath, imageProcessModel.Current.Key.Name + "." + imageProcessModel.Current.Key.FileExtension);
+                    var ext = imageProcessModel.Current.Key.FileExtension != "" ? imageProcessModel.Current.Key.FileExtension : ".png";
+                    outPath = System.IO.Path.Combine(outPath, imageProcessModel.Current.Key.Name + ext);
                     if (imageProcessModel.Current.Value == null)
                         File.Copy(imageProcessModel.Current.Key.ImagePathUri, outPath);
                     else
                         imageProcessModel.Current.Value.Save(outPath);
+                    imageProcessModel.Remove(imageProcessModel.Current);
                 }));
             }
         }
