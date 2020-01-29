@@ -27,8 +27,10 @@ namespace CLIScraper.WebPageParsers
             task.Wait();
             var document = task.Result;
             //var test = document.QuerySelectorAll("div.rg_meta");
-            // var test = document.QuerySelectorAll("img.rg_i");
+
             var test = document.QuerySelectorAll("a.rg_l");
+            if (!test.Any())
+                test = document.QuerySelectorAll("img.rg_i");
             foreach (var element in test)
             {
                 IHtmlImageElement htmlimage = element as IHtmlImageElement;
