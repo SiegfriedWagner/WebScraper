@@ -65,6 +65,23 @@ namespace WebScraperWPF.Models
                 ImagesToProcess.Add(new KeyValuePair<ImageSearchResult, Emgu.CV.Image<Bgr, byte>>(param, null));
             }  
         }
+        public void Clear()
+        {
+            foreach(var image in ImagesToProcess.Select(o => o.Value).Where(k => k != null))
+            {
+                image.Dispose();
+            }
+            ImagesToProcess.Clear();
+            currentIndex = -1;
+        }
+        public void Remove(KeyValuePair<ImageSearchResult, Image<Bgr, byte>> element)
+        {
+            if (element.Value != null)
+                element.Value.Dispose();
+            ImagesToProcess.Remove(element);
+            currentIndex = Math.Max(0, currentIndex - 1);
+            OnProcessedImageChange.Invoke();
+        }
         public void CropCurrent(Selection selection)
         {
             if (Current.Value == null)

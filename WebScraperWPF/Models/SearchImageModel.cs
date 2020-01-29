@@ -62,17 +62,17 @@ namespace WebScraperWPF.Model
                 .AsParallel()
                 .Select(o => o(CacheDirectory))
                 .ToList();
-            imageSearchResultTasks.ForEach((imageResultTask) =>
-            //await Task.Factory.StartNew(() =>
-            //{
-            //    Parallel.ForEach(imageSearchResultTasks, (imageResultTask) =>
+            //imageSearchResultTasks.ForEach((imageResultTask) =>
+            await Task.Factory.StartNew(() =>
+            {
+                Parallel.ForEach(imageSearchResultTasks, (imageResultTask) =>
                 {
                     Stopwatch watch = new Stopwatch();
                     watch.Start();
                     //Debug.WriteLine($"Started downloading {imageResultTask.Name} from [{imageResultTask.ImageWebUrl}]");
                     try
                     {
-                        imageResultTask.RunSynchronously();
+                        imageResultTask.Start();
                         //imageResultTask.Start();
                         imageResultTask.Wait(10000);
                         //var filePath = Path.Combine(CacheDirector, $"{imageResultTask.Name}.{imageResultTask.FileExtension}");
@@ -93,7 +93,7 @@ namespace WebScraperWPF.Model
                     watch.Stop();
 
                 });
-            //});
+            });
             Debug.WriteLine("All images were downloaded succesfully", "INFO");
         }
     }

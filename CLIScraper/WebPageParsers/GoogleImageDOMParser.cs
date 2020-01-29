@@ -27,7 +27,8 @@ namespace CLIScraper.WebPageParsers
             task.Wait();
             var document = task.Result;
             //var test = document.QuerySelectorAll("div.rg_meta");
-            var test = document.QuerySelectorAll("img.rg_i");
+            // var test = document.QuerySelectorAll("img.rg_i");
+            var test = document.QuerySelectorAll("a.rg_l");
             foreach (var element in test)
             {
                 IHtmlImageElement htmlimage = element as IHtmlImageElement;
@@ -62,6 +63,25 @@ namespace CLIScraper.WebPageParsers
                     }
                     else
                         throw new Exception("Unhandled data source");
+                }
+                IHtmlAnchorElement htmlanchor = element as IHtmlAnchorElement;
+                if (htmlanchor != null)
+                {
+                    var imglink = htmlanchor.Href.Replace(@"%3A", ":").Replace(@"%2F", @"/");
+                    var match = Regex.Match(imglink, @"imgurl.*?&");
+                    if (match.Success)
+                    {
+                        imglink = match.Value.Replace(@"imgurl=", "").Replace("&", "");
+                        yield return new Func<string, Task<ImageSearchResult>>((path) =>
+                        {
+                            return new Task<ImageSearchResult>(() =>
+                            {
+                                return ImageSearchResult.FromWebUrl(path, imglink);
+                            });
+                        });
+
+                    }
+                    var a = 10;
                 }
                 else
                 {
